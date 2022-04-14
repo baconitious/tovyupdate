@@ -29,11 +29,9 @@ const erouter = (usernames, pfps, settings) => {
 
     setInterval(async () => {
         let essions = await db.gsession.find({ started: false, start: { $lt: new Date() } });
-        console.log(essions);
         essions.forEach(async (session) => {
             let ssession = await db.gsession.findOne({ id: session.id });
             ssession.started = true;
-            console.log(ssession);
             ssession.did = await sendlog(session);
             await ssession.save();
         });
@@ -64,12 +62,13 @@ const erouter = (usernames, pfps, settings) => {
                 new discord.MessageButton({ style: 'LINK', label: 'Join', url: `https://www.roblox.com/games/${data.type.gid}/-` })
             );
         
-        console.log(settings.sessions.discoping)
 
-
-        let msg = await webhookc.send({ content: settings.sessions.discoping.length ? settings.sessions.discoping : null, embeds: [embed], components: [components] });
-        console.log(msg.id)
-        return msg.id;
+        let msg = await webhookc.send({ content: settings.sessions.discoping.length ? settings.sessions.discoping : null, embeds: [embed], components: [components] }).catch(err => {
+            console.log(err);
+        });
+        
+        console.log(msg?.id)
+        return msg?.id;
     }
 
     async function unsendlog(data) {
@@ -115,7 +114,6 @@ const erouter = (usernames, pfps, settings) => {
     router.get('/session/:id', async (req, res) => {
         let session = await db.gsession.findOne({ id: req.params.id });
         if (!session) return res.status(404).send({ success: false, error: 'Session not found' });
-        console.log(session)
 
         let data = {
             ...session._doc,
@@ -167,10 +165,10 @@ const erouter = (usernames, pfps, settings) => {
         if (!cp) return res.status(401).json({ message: 'go away!' });
 
         let data = req.body;
+        console.log('Session incoming')
         let id = parseInt(await db.gsession.countDocuments({}));
         let treq = await axios.get(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${req.body.game}&size=768x432&format=Png&isCircular=false`);
         let thumbnail = treq.data.data[0]?.thumbnails[0]?.imageUrl;
-        console.log(data)
         let ginfo = await noblox.getUniverseInfo(req.body.type);
         let dbdata = {
             id: id + 1,
@@ -186,7 +184,6 @@ const erouter = (usernames, pfps, settings) => {
             },
         };
         if (data.now) dbdata.did = await sendlog(dbdata);
-        console.log(dbdata.did)
 
         await db.gsession.create(dbdata);
 

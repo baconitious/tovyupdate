@@ -20,8 +20,8 @@ let activews = [];
 const erouter = (usernames, pfps, settings) => {
     console.log('running')
     noblox.onShout(parseInt(settings.group)).on('error', err => {}).on('data', async (data) => {
-        console.log(data);
-        if (!settings.sync) return;
+        console.log('New shout');
+        if (!settings.wall.sync) return;
         let id = parseInt(await db.message.countDocuments({}));
 
 
@@ -53,7 +53,7 @@ const erouter = (usernames, pfps, settings) => {
     })
 
     function sendlog(data, username, pfp) {
-        if (!settings.wall.discordhook) return;
+        if (!settings.wall?.discordhook) return;
         let webhook = settings.wall.discordhook;
 
         let webhookc = new WebhookClient({ url: webhook });
@@ -70,7 +70,6 @@ const erouter = (usernames, pfps, settings) => {
     }
 
     router.ws('/wall/socket', async (ws, req) => {
-        console.log(req.session)
         let cp = await checkperms(req.session.userid);
         
         if (!cp) {
@@ -135,10 +134,8 @@ const erouter = (usernames, pfps, settings) => {
         if (!cp) return res.status(401).json({ message: 'go away!' });
 
         const { message, shout } = req.body;
-        console.log(req.body);
         console.log(await db.message.countDocuments({}))
         let id = parseInt(await db.message.countDocuments({}));
-        console.log(id)
 
         let data = {
             id: id + 1,
